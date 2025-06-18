@@ -1,0 +1,8 @@
+{
+  "entity.olive.spawn": {
+    "sounds": [ "olive:entity/spawn" ]
+  },
+  "entity.olive.catch": {
+    "sounds": [ "olive:entity/catch"]
+  }
+}
