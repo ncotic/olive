@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +42,7 @@ public class OliveEntity extends LivingEntity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         super.defineSynchedData(builder);
     }
 
@@ -89,13 +90,8 @@ public class OliveEntity extends LivingEntity {
             if (position().distanceTo(summoner.position()) < 0.5 && summoner.level().dimension() == this.level().dimension()) {
                 if (!summoner.level().isClientSide() && position().distanceTo(summoner.position()) < 0.1) {
                     new Thread(() -> {
-                        try {
-                            PacketDistributor.sendToPlayer((ServerPlayer) summoner, new OlivePacket(trackedPlayerUUID.toString()));
-                            Thread.sleep(300);
-                            this.remove(RemovalReason.DISCARDED);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                        PacketDistributor.sendToPlayer((ServerPlayer) summoner, new OlivePacket(trackedPlayerUUID.toString()));
+                        this.remove(RemovalReason.DISCARDED);
                     }).start();
                 }
             }
@@ -128,7 +124,7 @@ public class OliveEntity extends LivingEntity {
     }
 
     @Override
-    public void remove(RemovalReason reason) {
+    public void remove(@NotNull RemovalReason reason) {
         super.remove(reason);
 
         OlivePlayerManager.removeTracker(trackedPlayerUUID);
@@ -153,19 +149,22 @@ public class OliveEntity extends LivingEntity {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        if (trackedPlayerUUID != null) {
-            tag.putString("trackedPlayerUUID", trackedPlayerUUID.toString());
+    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+        if (FMLLoader.getDist().isClient()) {
+            if (trackedPlayerUUID != null) {
+                tag.putString("trackedPlayerUUID", trackedPlayerUUID.toString());
+            }
+            super.addAdditionalSaveData(tag);
         }
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        if (tag.contains("trackedPlayerUUID")) {
-            trackedPlayerUUID = UUID.fromString(tag.getString("trackedPlayerUUID").orElseThrow());
+    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+        if (FMLLoader.getDist().isClient()) {
+            super.readAdditionalSaveData(tag);
+            if (tag.contains("trackedPlayerUUID")) {
+                trackedPlayerUUID = UUID.fromString(tag.getString("trackedPlayerUUID").orElseThrow());
+            }
         }
     }
-
 }

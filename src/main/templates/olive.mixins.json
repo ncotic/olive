@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.abwfl.olive.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MixinReportType"
+  ],
+  "client": [
+    "MixinReportType"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

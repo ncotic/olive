@@ -7,9 +7,12 @@ import com.abwfl.olive.entity.custom.OlivePlayerManager;
 import com.abwfl.olive.registers.EntityTypesRegister;
 import com.abwfl.olive.registers.SoundEventsRegister;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,12 +24,16 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
-import java.util.UUID;
+import java.util.*;
 
 @Mod(Olive.MOD_ID)
 public class Olive {
     public static final String MOD_ID = "olive";
+    public static List<ResourceLocation> blockTextureIds = new ArrayList<>();
+    public static boolean useCustomMessage = false;
 
     public Olive(IEventBus modEventBus, ModContainer modContainer) {
         EntityTypesRegister.ENTITY_TYPES.register(modEventBus);
@@ -74,6 +81,24 @@ public class Olive {
             if (tracker instanceof OliveEntity trackEnt) {
                 trackEnt.onTrackedPlayerLogin(player);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onServerStopped(ServerStoppingEvent event) {
+        MinecraftServer server = event.getServer();
+        for (ServerLevel level : server.getAllLevels()) {
+            level.getEntities(EntityType.byString("olive:olive").orElseThrow(), entity -> true)
+                    .forEach(Entity::discard);
+        }
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        MinecraftServer server = event.getServer();
+        for (ServerLevel level : server.getAllLevels()) {
+            level.getEntities(EntityType.byString("olive:olive").orElseThrow(), entity -> true)
+                    .forEach(Entity::discard);
         }
     }
 }
